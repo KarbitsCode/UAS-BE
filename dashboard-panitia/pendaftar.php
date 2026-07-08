@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -8,10 +8,27 @@
 </head>
 <body>
 
-<?php include '../components/navbar.php'; ?> <!-- Navbar di atas -->
+<?php
+session_start();
+if (!isset($_SESSION['id_user'])) {
+    header("Location: ../auth/login.php");
+    exit;
+}
 
-<div class="container-fluid mt-5 pt-4">
-  <h3 class="mb-4">Daftar Peserta</h3>
+require_once __DIR__ . "/../classes/pendaftaran.php";
+
+$pendaftaranModel = new Pendaftaran();
+$id_user          = (int)$_SESSION['id_user'];
+$pendaftar        = $pendaftaranModel->getDataByUser($id_user);
+?>
+
+<?php include '../components/navbar.php'; ?>
+
+<div class="container-fluid" style="padding:80px 24px 24px;">
+  <div class="page-title mb-4">
+    <h2>&#128101; Daftar Peserta</h2>
+    <p>Semua peserta yang terdaftar di event Anda.</p>
+  </div>
 
   <div class="table-responsive">
     <table class="table table-striped table-bordered align-middle w-100 shadow-sm">
@@ -19,30 +36,33 @@
         <tr>
           <th>Nama Peserta</th>
           <th>Email</th>
-          <th>No. HP</th>
+          <th>Jenis</th>
           <th>Event</th>
           <th>Tanggal Daftar</th>
-          <th style="width:200px;">Status</th>
+          <th style="width:150px;">Kehadiran</th>
         </tr>
       </thead>
       <tbody>
-        <!-- Data peserta akan ditampilkan di sini dari database -->
-        <!-- Contoh baris kosong -->
-        <!--
-        <tr>
-          <td>...</td>
-          <td>...</td>
-          <td>...</td>
-          <td>...</td>
-          <td>...</td>
-          <td><span class="badge bg-success">Aktif</span></td>
-          <td>
-            <a href="#" class="btn btn-info btn-sm">Detail</a>
-            <a href="#" class="btn btn-warning btn-sm">Edit</a>
-            <a href="#" class="btn btn-danger btn-sm">Hapus</a>
-          </td>
-        </tr>
-        -->
+        <?php if ($pendaftar && $pendaftar->num_rows > 0): ?>
+          <?php while ($row = $pendaftar->fetch_assoc()): ?>
+            <tr>
+              <td><?php echo htmlspecialchars($row['nama_peserta']); ?></td>
+              <td><?php echo htmlspecialchars($row['email']); ?></td>
+              <td><?php echo htmlspecialchars($row['jenis_identitas']); ?></td>
+              <td><?php echo htmlspecialchars($row['nama_event']); ?></td>
+              <td><?php echo date('d M Y', strtotime($row['tanggal_daftar'])); ?></td>
+              <td>
+                <span class="badge <?php echo $row['status_kehadiran'] === 'hadir' ? 'bg-success' : 'bg-secondary'; ?>">
+                  <?php echo ucfirst($row['status_kehadiran']); ?>
+                </span>
+              </td>
+            </tr>
+          <?php endwhile; ?>
+        <?php else: ?>
+          <tr>
+            <td colspan="6" class="text-center text-muted">Belum ada peserta terdaftar.</td>
+          </tr>
+        <?php endif; ?>
       </tbody>
     </table>
   </div>

@@ -1,26 +1,43 @@
-<?php
+﻿<?php
 session_start();
 
 // Jika sudah login, redirect ke dashboard
-if (isset($_SESSION['username'])) {
+if (isset($_SESSION['id_user'])) {
     header("Location: ../dashboard-panitia/dashboard.php");
     exit;
 }
 
-// Proses login
+require_once __DIR__ . "/../classes/users.php";
+
 $error = '';
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = $_POST['username'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    
-    // Username & password hardcoded untuk testing (tanpa database)
-    // Nanti bisa ganti dengan query database
-    if ($username === 'admin' && $password === 'admin123') {
-        $_SESSION['username'] = $username;
-        header("Location: ../dashboard-panitia/dashboard.php");
-        exit;
+
+    if ($username === '' || $password === '') {
+        $error = 'Username dan password wajib diisi.';
     } else {
-        $error = 'Username atau password salah!';
+        $usersModel = new Users();
+        $user = $usersModel->getUserByUsn($username);
+
+        if ($user && password_verify($password, $user['password'])) {
+            if (!$user['aktif']) {
+                $error = 'Akun Anda belum diverifikasi oleh administrator.';
+            } else {
+                $_SESSION['id_user']          = $user['id_user'];
+                $_SESSION['username']         = $user['username'];
+                $_SESSION['nama_organisasi']  = $user['nama_organisasi'];
+                $_SESSION['role']             = $user['role'];
+                if ($user['role'] === 'administrator') {
+                    header("Location: ../admin/dashboard.php");
+                } else {
+                    header("Location: ../dashboard-panitia/dashboard.php");
+                }
+                exit;
+            }
+        } else {
+            $error = 'Username atau password salah!';
+        }
     }
 }
 ?>
@@ -35,40 +52,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        body{
-            background-color:#f8f9fa;
+        body {
+            background: linear-gradient(135deg, #1d4ed8 0%, #7c3aed 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
         }
-
-        .login-card{
-            margin-top:80px;
-        }
-
-        .brand-title{
-            color:#2563EB;
-            font-weight:bold;
-        }
+        .login-card { border-radius: 20px; border: none; }
+        .brand-title { color: #1d4ed8; font-weight: 800; font-size: 2rem; }
+        .brand-sub { color: #6b7280; font-size: .9rem; }
+        .form-control { border-radius: 10px; padding: .65rem 1rem; }
+        .btn-primary { border-radius: 10px; padding: .65rem; font-weight: 600; }
     </style>
 </head>
 <body>
 
 <div class="container">
-
     <div class="row justify-content-center">
-
-        <div class="col-md-5">
+        <div class="col-md-5 col-lg-4">
 
             <div class="card shadow login-card">
 
                 <div class="card-body p-4">
 
                     <div class="text-center mb-4">
-                        <h2 class="brand-title">
-                            SME
-                        </h2>
-
-                        <p class="text-muted">
-                            Login Penyelenggara Event
-                        </p>
+                        <div class="mb-2" style="font-size:2.5rem;">&#127775;</div>
+                        <h2 class="brand-title">SME</h2>
+                        <p class="brand-sub">Sistem Manajemen Event<br>Login Penyelenggara</p>
                     </div>
 
                     <?php if ($error): ?>

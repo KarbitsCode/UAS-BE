@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -8,10 +8,45 @@
 </head>
 <body>
 
-<?php include '../components/navbar.php'; ?> <!-- Navbar di atas -->
+<?php
+session_start();
+if (!isset($_SESSION['id_user'])) {
+    header("Location: ../auth/login.php");
+    exit;
+}
 
-<div class="container-fluid mt-5 pt-4">
-  <h3 class="mb-4">Daftar Event</h3>
+require_once __DIR__ . "/../classes/events.php";
+
+$eventsModel = new Events();
+$id_user     = (int)$_SESSION['id_user'];
+
+// Proses Hapus
+if (isset($_GET['aksi']) && $_GET['aksi'] === 'hapus' && isset($_GET['id'])) {
+    $id = (int)$_GET['id'];
+    $eventsModel->removeData($id);
+    header("Location: event.php?msg=hapus");
+    exit;
+}
+
+$events = $eventsModel->getDataByUser($id_user);
+$msg    = $_GET['msg'] ?? '';
+?>
+
+<?php include '../components/navbar.php'; ?>
+
+<div class="container-fluid" style="padding:80px 24px 24px;">
+  <div class="page-title mb-4">
+    <h2>📅 Kelola Event</h2>
+    <p>Buat, edit, dan hapus event Anda.</p>
+  </div>
+
+  <?php if ($msg === 'tambah'): ?>
+    <div class="alert alert-success alert-dismissible fade show">Event berhasil ditambahkan! <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  <?php elseif ($msg === 'edit'): ?>
+    <div class="alert alert-success alert-dismissible fade show">Event berhasil diperbarui! <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  <?php elseif ($msg === 'hapus'): ?>
+    <div class="alert alert-warning alert-dismissible fade show">Event berhasil dihapus. <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  <?php endif; ?>
 
   <div class="table-responsive">
     <table class="table table-striped table-bordered align-middle w-100 shadow-sm">
@@ -22,46 +57,45 @@
           <th>Tanggal</th>
           <th>Kuota</th>
           <th>Status</th>
-          <th style="width:200px;">Aksi</th>
+          <th style="width:220px;">Aksi</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td><img src="poster-ai.jpg" alt="Poster Seminar AI" class="img-fluid" style="max-width:100px;"></td>
-          <td>Seminar AI</td>
-          <td>10 Juli 2026</td>
-          <td>120</td>
-          <td><span class="badge bg-success">Aktif</span></td>
-          <td>
-            <a href="#" class="btn btn-info btn-sm">Detail</a>
-            <a href="#" class="btn btn-warning btn-sm">Edit</a>
-            <a href="#" class="btn btn-danger btn-sm">Hapus</a>
-          </td>
-        </tr>
-        <tr>
-          <td><img src="poster-uiux.jpg" alt="Poster Workshop UI/UX" class="img-fluid" style="max-width:100px;"></td>
-          <td>Workshop UI/UX</td>
-          <td>15 Juli 2026</td>
-          <td>80</td>
-          <td><span class="badge bg-secondary">Selesai</span></td>
-          <td>
-            <a href="#" class="btn btn-info btn-sm">Detail</a>
-            <a href="#" class="btn btn-warning btn-sm">Edit</a>
-            <a href="#" class="btn btn-danger btn-sm">Hapus</a>
-          </td>
-        </tr>
-        <tr>
-          <td><img src="poster-web.jpg" alt="Poster Lomba Web" class="img-fluid" style="max-width:100px;"></td>
-          <td>Lomba Web</td>
-          <td>20 Juli 2026</td>
-          <td>50</td>
-          <td><span class="badge bg-success">Aktif</span></td>
-          <td>
-            <a href="#" class="btn btn-info btn-sm">Detail</a>
-            <a href="#" class="btn btn-warning btn-sm">Edit</a>
-            <a href="#" class="btn btn-danger btn-sm">Hapus</a>
-          </td>
-        </tr>
+        <?php if ($events && $events->num_rows > 0): ?>
+          <?php while ($row = $events->fetch_assoc()): ?>
+            <?php $isAktif = strtotime($row['tanggal_event']) > time(); ?>
+            <tr>
+              <td>
+                <?php if ($row['poster_event']): ?>
+                  <img src="../uploads/posters/<?php echo htmlspecialchars($row['poster_event']); ?>" alt="Poster" class="img-fluid" style="max-width:100px;">
+                <?php else: ?>
+                  <span class="text-muted">-</span>
+                <?php endif; ?>
+              </td>
+              <td><?php echo htmlspecialchars($row['nama_event']); ?></td>
+              <td><?php echo date('d M Y', strtotime($row['tanggal_event'])); ?></td>
+              <td><?php echo $row['kuota']; ?></td>
+              <td>
+                <span class="badge <?php echo $isAktif ? 'bg-success' : 'bg-secondary'; ?>">
+                  <?php echo $isAktif ? 'Aktif' : 'Selesai'; ?>
+                </span>
+              </td>
+              <td>
+                <a href="detail-event.php?id=<?php echo $row['id_event']; ?>" class="btn btn-info btn-sm">Detail</a>
+                <a href="edit-event.php?id=<?php echo $row['id_event']; ?>" class="btn btn-warning btn-sm">Edit</a>
+                <a href="event.php?aksi=hapus&id=<?php echo $row['id_event']; ?>"
+                   class="btn btn-danger btn-sm"
+                   onclick="return confirm('Yakin hapus event ini? Semua pendaftaran terkait akan ikut terhapus.')">
+                  Hapus
+                </a>
+              </td>
+            </tr>
+          <?php endwhile; ?>
+        <?php else: ?>
+          <tr>
+            <td colspan="6" class="text-center text-muted">Belum ada event. <a href="tambah-event.php">Tambah sekarang</a>.</td>
+          </tr>
+        <?php endif; ?>
       </tbody>
     </table>
   </div>
