@@ -26,7 +26,7 @@ $pendaftar        = $pendaftaranModel->getDataByUser($id_user);
 
 <div class="container-fluid" style="padding:80px 24px 24px;">
   <div class="page-title mb-4">
-    <h2>&#128101; Daftar Peserta</h2>
+    <h2> <b>Daftar Peserta</b> </h2>
     <p>Semua peserta yang terdaftar di event Anda.</p>
   </div>
 
