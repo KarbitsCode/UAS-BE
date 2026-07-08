@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 
 // Jika sudah login, redirect ke dashboard
