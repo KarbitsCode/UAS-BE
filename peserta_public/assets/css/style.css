@@ -1,0 +1,127 @@
+body{
+    background:#f5f7fb;
+    font-family:'Segoe UI',sans-serif;
+}
+
+/* Navbar */
+
+.navbar{
+    padding:15px 0;
+}
+
+.navbar-brand{
+    font-size:30px;
+    font-weight:bold;
+}
+
+.nav-link{
+    margin:0 10px;
+    transition:.3s;
+}
+
+.nav-link:hover{
+    color:#0d6efd;
+}
+
+/* Hero */
+
+.hero{
+
+    min-height:70vh;
+
+    background:
+    linear-gradient(rgba(13,110,253,.75),
+    rgba(13,110,253,.75)),
+    url("../images/bg.jpg");
+
+    background-size:cover;
+    background-position:center;
+
+}
+
+.hero h1{
+
+    font-size:55px;
+    font-weight:bold;
+
+}
+
+.hero p{
+
+    max-width:700px;
+    margin:auto;
+
+}
+
+/* Card */
+
+.event-card{
+    width:100%;
+
+    border:none;
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+    transition:.4s;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+
+}
+
+.event-card:hover{
+
+    transform:translateY(-10px);
+
+    box-shadow:0 15px 35px rgba(0,0,0,.18);
+
+}
+
+.event-img{
+
+    height:240px;
+
+    object-fit:cover;
+
+    transition:.5s;
+
+}
+
+.event-card:hover .event-img{
+
+    transform:scale(1.08);
+
+}
+
+.card-body{
+
+    padding:25px;
+
+}
+
+.btn-primary{
+
+    border-radius:30px;
+
+    padding:10px;
+
+    font-weight:bold;
+
+}
+
+.badge{
+
+    border-radius:30px;
+
+    padding:8px 15px;
+
+}
+
+/* Footer */
+
+footer{
+
+    margin-top:70px;
+
+}
