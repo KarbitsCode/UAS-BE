@@ -2,25 +2,42 @@
 session_start();
 
 // Jika sudah login, redirect ke dashboard
-if (isset($_SESSION['username'])) {
+if (isset($_SESSION['id_user'])) {
     header("Location: ../dashboard-panitia/dashboard.php");
     exit;
 }
 
-// Proses login
+require_once __DIR__ . "/../classes/users.php";
+
 $error = '';
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = $_POST['username'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    
-    // Username & password hardcoded untuk testing (tanpa database)
-    // Nanti bisa ganti dengan query database
-    if ($username === 'admin' && $password === 'admin123') {
-        $_SESSION['username'] = $username;
-        header("Location: ../dashboard-panitia/dashboard.php");
-        exit;
+
+    if ($username === '' || $password === '') {
+        $error = 'Username dan password wajib diisi.';
     } else {
-        $error = 'Username atau password salah!';
+        $usersModel = new Users();
+        $user = $usersModel->getUserByUsn($username);
+
+        if ($user && password_verify($password, $user['password'])) {
+            if (!$user['aktif']) {
+                $error = 'Akun Anda belum diverifikasi oleh administrator.';
+            } else {
+                $_SESSION['id_user']          = $user['id_user'];
+                $_SESSION['username']         = $user['username'];
+                $_SESSION['nama_organisasi']  = $user['nama_organisasi'];
+                $_SESSION['role']             = $user['role'];
+                if ($user['role'] === 'administrator') {
+                    header("Location: ../admin/dashboard.php");
+                } else {
+                    header("Location: ../dashboard-panitia/dashboard.php");
+                }
+                exit;
+            }
+        } else {
+            $error = 'Username atau password salah!';
+        }
     }
 }
 ?>

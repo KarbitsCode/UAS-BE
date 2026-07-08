@@ -1,5 +1,5 @@
 <?php
-require_once "database/config.php";
+require_once __DIR__ . "/../database/config.php";
 
 class Users extends Database {
     private $tbl = "users";
@@ -61,6 +61,34 @@ class Users extends Database {
         $stmt = $this->cn->prepare($tmplq);
         $stmt->bind_param("i", $id_user);
         return $stmt->execute();
+    }
+
+    public function updateInfo($data) {
+        $id = (int)$data['id_user'];
+        $username = $data['username'];
+        $nama_organisasi = $data['nama_organisasi'];
+        $tmplq = "UPDATE $this->tbl SET username = ?, nama_organisasi = ? WHERE id_user = ?";
+        $stmt = $this->cn->prepare($tmplq);
+        $stmt->bind_param("ssi", $username, $nama_organisasi, $id);
+        return $stmt->execute();
+    }
+
+    public function updatePassword($id_user, $new_password) {
+        $hashed = password_hash($new_password, PASSWORD_DEFAULT);
+        $tmplq = "UPDATE $this->tbl SET password = ? WHERE id_user = ?";
+        $stmt = $this->cn->prepare($tmplq);
+        $stmt->bind_param("si", $hashed, $id_user);
+        return $stmt->execute();
+    }
+
+    public function getPendingPenyelenggara() {
+        $tmplq = "SELECT * FROM $this->tbl WHERE role = 'penyelenggara' AND aktif = false ORDER BY id_user ASC";
+        return $this->cn->query($tmplq);
+    }
+
+    public function getAllPenyelenggara() {
+        $tmplq = "SELECT * FROM $this->tbl WHERE role = 'penyelenggara' ORDER BY id_user ASC";
+        return $this->cn->query($tmplq);
     }
 }
 ?>
